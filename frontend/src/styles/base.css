@@ -1,0 +1,130 @@
+@import './variables.css';
+
+/* 重置样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* 通用动画 */
+.fade-in {
+  animation: fadeIn var(--animation-duration-slow) var(--animation-timing-function);
+}
+
+.hover-up {
+  transition: transform var(--animation-duration-base) var(--animation-timing-function);
+}
+
+.hover-up:hover {
+  transform: translateY(-2px);
+}
+
+/* 通用布局类 */
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-base);
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 通用间距类 */
+.margin-top {
+  margin-top: var(--spacing-base);
+}
+
+.margin-bottom {
+  margin-bottom: var(--spacing-base);
+}
+
+.padding {
+  padding: var(--spacing-base);
+}
+
+/* 通用文本类 */
+.text-center {
+  text-align: center;
+}
+
+.text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 通用卡片类 */
+.card {
+  background: rgba(255, 255, 255, var(--opacity-full));
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-base);
+  backdrop-filter: var(--blur-effect);
+  transition: all var(--animation-duration-base) var(--animation-timing-function);
+}
+
+.card:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* 响应式工具类 */
+@media (max-width: var(--breakpoint-xs)) {
+  .hide-xs {
+    display: none;
+  }
+}
+
+@media (max-width: var(--breakpoint-sm)) {
+  .hide-sm {
+    display: none;
+  }
+}
+
+@media (max-width: var(--breakpoint-md)) {
+  .hide-md {
+    display: none;
+  }
+} 

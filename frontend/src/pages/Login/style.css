@@ -1,0 +1,286 @@
+@import '../../styles/variables.css';
+
+/* 重置全局样式 */
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.login-container {
+  min-height: 100vh;
+  background: var(--gradient-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: var(--spacing-large);
+}
+
+.login-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('https://gw.alipayobjects.com/zos/rmsportal/TVYTbAXWheQpRcWDaDMu.svg') no-repeat center center;
+  background-size: cover;
+  opacity: 0.1;
+  animation: float 20s ease-in-out infinite;
+}
+
+.login-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+.login-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.prefixIcon {
+  color: #1890ff;
+  transition: all 0.3s ease;
+}
+
+.prefixIcon:hover {
+  transform: scale(1.1);
+  color: #40a9ff;
+}
+
+/* 登录框容器样式 */
+.ant-pro-form-login-page {
+  display: flex;
+  flex-direction: column;
+  height: auto !important;
+  background: transparent !important;
+}
+
+.ant-pro-form-login-page-container {
+  padding: 32px 24px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  min-height: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.ant-pro-form-login-page-top {
+  background: transparent !important;
+}
+
+.ant-pro-form-login-page-header {
+  background: transparent !important;
+}
+
+.ant-pro-form-login-page-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 标题样式 */
+.ant-pro-form-login-page-title {
+  color: #1890ff;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 8px !important;
+  background: linear-gradient(45deg, #1890ff, #722ed1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: titleGradient 3s ease infinite;
+  text-align: center;
+}
+
+/* 副标题样式 */
+.ant-pro-form-login-page-subtitle {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 16px;
+  margin-bottom: 32px !important;
+  position: relative;
+  padding-bottom: 16px;
+  text-align: center;
+}
+
+.ant-pro-form-login-page-subtitle::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, #1890ff, #722ed1);
+  border-radius: 1px;
+}
+
+/* Logo样式 */
+.ant-pro-form-login-page-logo {
+  width: 64px;
+  height: 64px;
+  transition: all var(--animation-duration-base) var(--animation-timing-function);
+  display: block;
+  margin: 0 auto var(--spacing-base);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.ant-pro-form-login-page-logo:hover {
+  transform: rotate(360deg) scale(1.1);
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+}
+
+/* 输入框样式 */
+.ant-pro-form-login-page .ant-input-affix-wrapper {
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0 11px;
+}
+
+.ant-pro-form-login-page .ant-input {
+  height: 38px;
+  padding: 0 8px;
+}
+
+.ant-pro-form-login-page .ant-input-affix-wrapper:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.ant-pro-form-login-page .ant-input-affix-wrapper-focused {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 按钮样式 */
+.ant-pro-form-login-page .ant-btn {
+  height: 40px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 24px;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.ant-pro-form-login-page .ant-btn-primary {
+  background: linear-gradient(45deg, #1890ff, #722ed1);
+  border: none;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.35);
+}
+
+.ant-pro-form-login-page .ant-btn-primary:hover {
+  background: linear-gradient(45deg, #40a9ff, #9254de);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.45);
+}
+
+.ant-pro-form-login-page .ant-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* 表单项样式 */
+.ant-pro-form-login-page .ant-form-item {
+  margin-bottom: 24px;
+}
+
+.ant-pro-form-login-page .ant-form {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* 错误提示样式 */
+.ant-pro-form-login-page .ant-form-item-explain-error {
+  font-size: 14px;
+  margin-top: 4px;
+  color: #ff4d4f;
+  animation: shake 0.5s ease-in-out;
+}
+
+/* 动画效果 */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes titleGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 576px) {
+  .login-container {
+    padding: 16px;
+  }
+  
+  .ant-pro-form-login-page-container {
+    padding: 24px 16px !important;
+  }
+  
+  .ant-pro-form-login-page-title {
+    font-size: 24px;
+  }
+  
+  .ant-pro-form-login-page-subtitle {
+    font-size: 14px;
+  }
+
+  .ant-pro-form-login-page .ant-btn {
+    height: 36px;
+    font-size: 14px;
+  }
+} 

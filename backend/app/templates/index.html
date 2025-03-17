@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}首页{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-4">欢迎来到 AI Demo</h1>
+    <p class="lead">这是一个基于 Flask 的 AI 演示项目</p>
+    {% if not current_user.is_authenticated %}
+    <div class="mt-4">
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primary me-2">登录</a>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary">注册</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <h3>特点一</h3>
+        <p>使用 Flask 框架构建，简单易用</p>
+    </div>
+    <div class="col-md-4">
+        <h3>特点二</h3>
+        <p>集成用户认证系统</p>
+    </div>
+    <div class="col-md-4">
+        <h3>特点三</h3>
+        <p>提供 RESTful API 接口</p>
+    </div>
+</div>
+{% endblock %} 
