@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      - ENV=${ENV:-development}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-ai_demo}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+    networks:
+      - ai-demo-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8000}
+      - REACT_APP_ENV=${REACT_APP_ENV:-development}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - ai-demo-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=${DB_NAME:-ai_demo}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ai-demo-network
+
+volumes:
+  postgres_data:
+
+networks:
+  ai-demo-network:
+    driver: bridge 

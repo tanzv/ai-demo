@@ -1,0 +1,48 @@
+# Version control
+.git
+.gitignore
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+*.py[cod]
+*$py.class
+.pytest_cache
+.coverage
+htmlcov/
+.env
+.venv
+venv/
+ENV/
+
+# Node
+**/node_modules
+**/npm-debug.log
+**/yarn-debug.log
+**/yarn-error.log
+**/.pnp
+**/.pnp.js
+**/coverage
+**/build
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+**/dist
+**/build
+**/*.egg-info
+docs/
+README.md
+LICENSE 

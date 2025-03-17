@@ -249,3 +249,61 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+
+# UV specific
+.uv/
+.venv/
+__pypackages__/
+.python-version
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite3
+*.sqlite
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Project specific
+backend/static/
+backend/media/

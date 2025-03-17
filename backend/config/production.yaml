@@ -1,0 +1,22 @@
+# Production environment specific configuration
+project:
+  debug: false
+
+database:
+  host: "db.production.example.com"
+  pool_size: 20
+  pool_recycle: 1800
+
+auth:
+  access_token_expire_minutes: 15
+  refresh_token_expire_days: 3
+
+cors:
+  origins:
+    - "https://example.com"
+    - "https://www.example.com"
+
+logging:
+  level: "WARNING"
+  max_size: 52428800  # 50MB
+  backup_count: 10 

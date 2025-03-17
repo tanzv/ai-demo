@@ -1,0 +1,10 @@
+# Development environment specific configuration
+project:
+  debug: true
+
+database:
+  host: "localhost"
+  password: "odoo"
+
+logging:
+  level: "DEBUG" 
