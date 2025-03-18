@@ -1,0 +1,54 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "activate-venv",
+            "type": "shell",
+            "command": "source ${workspaceFolder}/backend/.venv/bin/activate",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start:frontend",
+            "type": "npm",
+            "script": "start",
+            "path": "frontend/",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start:backend",
+            "type": "shell",
+            "command": "cd backend && source .venv/bin/activate && python cli.py run --host=0.0.0.0 --port=8000 --debug",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "dev:frontend",
+            "group": "build",
+            "label": "npm: dev:frontend",
+            "detail": "启动前端开发服务器（调试模式）"
+        },
+        {
+            "type": "npm",
+            "script": "dev:backend",
+            "group": "build",
+            "label": "npm: dev:backend",
+            "detail": "启动后端服务器（调试模式）"
+        }
+    ]
+} 

@@ -1,103 +1,86 @@
+import os
 from sqlalchemy.orm import Session
-from backend.config.database import SessionLocal, engine, Base
-from backend.config.settings import settings
-from backend.models.user import User
+from config.database import SessionLocal, engine, Base
+from config.settings import settings
+from models.user import User
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from passlib.context import CryptContext
 
-def init_db() -> None:
-    """Initialize database with default admin user"""
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def create_tables():
+    """创建数据库表"""
     Base.metadata.create_all(bind=engine)
-    
+    print("数据库表创建成功")
+
+def create_admin_user():
+    """创建默认管理员用户"""
     db = SessionLocal()
     try:
-        # Check if admin user already exists
-        user = db.query(User).filter(
-            User.username == settings.get('admin.username')
-        ).first()
-        
-        if not user:
-            # Create default admin user
+        # 检查是否已存在管理员用户
+        admin = db.query(User).filter(User.username == settings.get('admin.username')).first()
+        if not admin:
             admin = User(
                 username=settings.get('admin.username'),
                 email=settings.get('admin.email'),
-                hashed_password=User.get_password_hash(
-                    settings.get('admin.password')
-                ),
+                hashed_password=pwd_context.hash(settings.get('admin.password')),
+                is_active=True,
                 is_superuser=True
             )
             db.add(admin)
             db.commit()
-            print("Created default admin user")
+            print("默认管理员用户创建成功")
         else:
-            print("Admin user already exists")
-            
+            print("默认管理员用户已存在")
+    except Exception as e:
+        print(f"创建管理员用户时出错: {e}")
+        db.rollback()
     finally:
         db.close()
 
 def init_postgres_db():
-    """Initialize PostgreSQL database if not exists"""
-    # Connect to PostgreSQL server
-    conn = psycopg2.connect(
-        host=settings.get('database.host'),
-        user=settings.get('database.user'),
-        password=settings.get('database.password')
-    )
-    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    cursor = conn.cursor()
-    
-    # Check if database exists
-    cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", 
-                  (settings.get('database.db_name'),))
-    exists = cursor.fetchone()
-    
-    if not exists:
-        try:
-            cursor.execute(f"CREATE DATABASE {settings.get('database.db_name')}")
-            print(f"Database {settings.get('database.db_name')} created successfully")
-        except Exception as e:
-            print(f"Error creating database: {e}")
-            return False
-    
-    cursor.close()
-    conn.close()
-    return True
+    """初始化 PostgreSQL 数据库"""
+    try:
+        # 连接到 PostgreSQL 服务器
+        conn = psycopg2.connect(
+            dbname='postgres',
+            user=settings.get('database.user'),
+            password=settings.get('database.password'),
+            host=settings.get('database.host'),
+            port=settings.get('database.port')
+        )
+        conn.autocommit = True
+        cur = conn.cursor()
 
-def create_admin_user(app):
-    """Create admin user if not exists"""
-    from backend.models.user import User
-    from backend.config.database import db
-    
-    with app.app_context():
-        # Check if admin user exists
-        admin = User.query.filter_by(
-            username=settings.get('admin.username')
-        ).first()
-        
-        if not admin:
-            # Create admin user
-            admin = User(
-                username=settings.get('admin.username'),
-                email=settings.get('admin.email'),
-                is_superuser=True
-            )
-            admin.set_password(settings.get('admin.password'))
-            
-            db.session.add(admin)
-            db.session.commit()
-            print("Admin user created successfully")
+        # 检查数据库是否存在
+        cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", 
+                   (settings.get('database.db_name'),))
+        exists = cur.fetchone()
+
+        if not exists:
+            # 创建数据库
+            db_name = settings.get('database.db_name')
+            cur.execute(f'CREATE DATABASE {db_name}')
+            print(f"数据库 '{db_name}' 创建成功")
         else:
-            print("Admin user already exists")
+            print(f"数据库 '{settings.get('database.db_name')}' 已存在")
 
-def init_app(app):
-    """Initialize application database and admin user"""
+        cur.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"创建数据库时出错: {e}")
+        return False
+
+def init_app():
+    """初始化应用数据库和管理员用户"""
     if init_postgres_db():
-        from backend.config.database import init_db
-        init_db(app)
-        create_admin_user(app)
-        print("Database initialization completed")
+        create_tables()
+        create_admin_user()
+        print("数据库初始化完成")
 
 if __name__ == "__main__":
-    print("Creating initial data")
-    init_db()
-    print("Initial data created") 
+    print("开始创建初始数据")
+    init_app()
+    print("初始数据创建完成") 

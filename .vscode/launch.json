@@ -1,0 +1,97 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Backend: Flask App",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/cli.py",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/backend",
+                "CONFIG_PATH": "${workspaceFolder}/backend/config/default.yaml",
+                "FLASK_APP": "app",
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "1"
+            },
+            "args": [
+                "run",
+                "--host=0.0.0.0",
+                "--port=8000",
+                "--debug"
+            ],
+            "cwd": "${workspaceFolder}/backend",
+            "preLaunchTask": "activate-venv"
+        },
+        {
+            "name": "Backend: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/backend",
+                "CONFIG_PATH": "${workspaceFolder}/backend/config/default.yaml"
+            },
+            "preLaunchTask": "activate-venv"
+        },
+        {
+            "name": "Backend: Run App Script",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/run.py",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/backend",
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "1",
+                "CONFIG_PATH": "${workspaceFolder}/backend/config/default.yaml"
+            },
+            "args": [
+                "--env=development",
+                "--host=0.0.0.0",
+                "--port=8000",
+                "--debug"
+            ],
+            "cwd": "${workspaceFolder}/backend",
+            "preLaunchTask": "activate-venv"
+        },
+        {
+            "name": "Frontend: Start",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/frontend",
+            "sourceMapPathOverrides": {
+                "webpack:///src/*": "${webRoot}/src/*"
+            },
+            "preLaunchTask": "npm: start:frontend"
+        },
+        {
+            "name": "Frontend: Attach",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9222,
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/frontend",
+            "sourceMapPathOverrides": {
+                "webpack:///src/*": "${webRoot}/src/*"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Full Stack: Frontend + Backend",
+            "configurations": ["Backend: Flask App", "Frontend: Start"]
+        }
+    ]
+}

@@ -29,9 +29,10 @@ export interface UserData {
 
 const authService = {
     async login(data: LoginData): Promise<AuthResponse> {
-        const response = await axios.post(`${API_URL}/auth/login`, data, {
-            withCredentials: true
-        });
+        const response = await axios.post(`${API_URL}/auth/login`, data);
+        if (response.data.access_token) {
+            this.setAuthToken(response.data.access_token);
+        }
         return response.data;
     },
 
@@ -42,29 +43,37 @@ const authService = {
 
     async getCurrentUser(): Promise<UserData> {
         const response = await axios.get(`${API_URL}/auth/me`, {
-            withCredentials: true
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
         });
         return response.data;
     },
 
     async refreshToken(): Promise<AuthResponse> {
         const response = await axios.post(`${API_URL}/auth/refresh`, {}, {
-            withCredentials: true
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
         });
+        if (response.data.access_token) {
+            this.setAuthToken(response.data.access_token);
+        }
         return response.data;
     },
 
     setAuthToken(token: string) {
         if (token) {
+            localStorage.setItem('token', token);
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         } else {
+            localStorage.removeItem('token');
             delete axios.defaults.headers.common['Authorization'];
         }
     },
 
     logout() {
         this.setAuthToken('');
-        localStorage.removeItem('token');
     }
 };
 

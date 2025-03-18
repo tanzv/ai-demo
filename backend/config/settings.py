@@ -54,11 +54,11 @@ class ConfigManager:
     def _load_config(self):
         """Load configuration files"""
         # Get config path from environment variable, or use default path
-        config_path = os.getenv('CONFIG_PATH', 'backend/config/default.yaml')
+        config_path = os.getenv('CONFIG_PATH', 'config/default.yaml')
         
         # If environment is specified, load corresponding config file
         env = os.getenv('ENV', 'default')
-        env_config_path = f'backend/config/{env}.yaml'
+        env_config_path = f'config/{env}.yaml'
 
         # Load default configuration
         with open(config_path, 'r', encoding='utf-8') as f:

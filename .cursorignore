@@ -1,0 +1,60 @@
+# Dependencies and build outputs
+node_modules/
+dist/
+build/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment and configuration
+.env*
+!.env.example
+backend/config/*.yaml
+backend/config/*.yml
+!backend/config/*.example.yaml
+!backend/config/*.example.yml
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs and databases
+*.log
+logs/
+*.db
+*.sqlite3
+
+# Test coverage and cache
+coverage/
+.coverage
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Generated files
+*.generated.*
+*.min.*
+*.map
+
+# Large binary files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.mp4
+*.mov
+*.wav
+*.mp3
+
+# Documentation
+docs/_build/
+site/
+
+# Temporary files
+tmp/
+temp/
+.cache/ 

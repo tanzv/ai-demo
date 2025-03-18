@@ -3,7 +3,7 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginFormPage, ProFormText } from '@ant-design/pro-components';
 import { message, Spin } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../../services/auth';
+import authService from '../../services/auth';
 import logo from '../../assets/logo.svg';
 import './style.css';
 
@@ -14,14 +14,13 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (values: { username: string; password: string }) => {
     try {
       setLoading(true);
-      const response = await login(values);
+      const response = await authService.login(values);
       if (response.access_token) {
-        localStorage.setItem('token', response.access_token);
         message.success('登录成功！');
         navigate('/dashboard');
       }
     } catch (error: any) {
-      message.error(error.response?.data?.detail || '登录失败，请重试');
+      message.error(error.response?.data?.error || '登录失败，请重试');
     } finally {
       setLoading(false);
     }

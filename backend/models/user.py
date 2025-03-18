@@ -1,21 +1,22 @@
+from sqlalchemy import Boolean, Column, Integer, String, DateTime
+from config.database import db
 from flask_login import UserMixin
-from backend.config.database import db
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-class User(UserMixin, db.Model):
+class User(db.Model, UserMixin):
     """User model for database"""
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    hashed_password = db.Column(db.String(100), nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
-    is_superuser = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    email = Column(String(100), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(100), nullable=False)
+    is_active = Column(Boolean, default=True)
+    is_superuser = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=db.func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=db.func.now())
 
     def set_password(self, password):
         """Set password hash"""

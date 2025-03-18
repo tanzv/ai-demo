@@ -1,30 +1,42 @@
 from flask import Blueprint, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from backend.models.user import User
-from backend.utils.auth import create_access_token, create_refresh_token
-from backend.config.database import db
+from models.user import User
+from config.database import db
+from utils.auth import create_access_token, create_refresh_token
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """Login user and return access token"""
+    """用户登录"""
     data = request.get_json()
     
     if not data or not data.get('username') or not data.get('password'):
-        return jsonify({"error": "Missing username or password"}), 400
+        return jsonify({
+            'error': 'Missing username or password'
+        }), 400
         
     user = User.query.filter_by(username=data['username']).first()
-    if not user or not user.verify_password(data['password']):
-        return jsonify({"error": "Invalid username or password"}), 401
-        
-    # Login user
-    login_user(user)
     
+    if user and user.verify_password(data['password']):
+        login_user(user)
+        return jsonify({
+            'access_token': create_access_token(user.id),
+            'refresh_token': create_refresh_token(user.id),
+            'token_type': 'bearer'
+        })
+        
     return jsonify({
-        "access_token": create_access_token(user.id),
-        "refresh_token": create_refresh_token(user.id),
-        "token_type": "bearer"
+        'error': 'Invalid username or password'
+    }), 401
+
+@auth_bp.route('/logout')
+@login_required
+def logout():
+    """用户登出"""
+    logout_user()
+    return jsonify({
+        'message': 'Logout successful'
     })
 
 @auth_bp.route('/register', methods=['POST'])

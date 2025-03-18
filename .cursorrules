@@ -1,0 +1,144 @@
+{
+    "version": "1.0",
+    "language": {
+        "python": {
+            "formatter": "black",
+            "linter": "ruff",
+            "maxLineLength": 88,
+            "indentSize": 4,
+            "rules": {
+                "imports": {
+                    "order": true,
+                    "grouping": [
+                        "future",
+                        "standard_library",
+                        "third_party",
+                        "first_party",
+                        "local"
+                    ]
+                },
+                "style": {
+                    "quoteMark": "double",
+                    "trailingComma": true
+                },
+                "comments": {
+                    "language": "english",
+                    "docstring": {
+                        "style": "google",
+                        "required": true,
+                        "content": {
+                            "args": true,
+                            "returns": true,
+                            "raises": true,
+                            "examples": true
+                        }
+                    },
+                    "inline": {
+                        "style": "sentence",
+                        "startWithSpace": true,
+                        "endWithPeriod": true
+                    },
+                    "todos": {
+                        "format": "# TODO: [description] (username, YYYY-MM-DD)",
+                        "required": true
+                    }
+                }
+            }
+        },
+        "typescript": {
+            "formatter": "prettier",
+            "linter": "eslint",
+            "maxLineLength": 100,
+            "indentSize": 2,
+            "rules": {
+                "imports": {
+                    "order": true,
+                    "newlinesBetween": "always"
+                },
+                "style": {
+                    "quoteMark": "single",
+                    "semi": true,
+                    "trailingComma": "es5"
+                },
+                "comments": {
+                    "language": "english",
+                    "jsdoc": {
+                        "style": "google",
+                        "required": true,
+                        "content": {
+                            "params": true,
+                            "returns": true,
+                            "throws": true,
+                            "example": true
+                        }
+                    },
+                    "inline": {
+                        "style": "sentence",
+                        "startWithSpace": true,
+                        "endWithPeriod": true
+                    },
+                    "todos": {
+                        "format": "// TODO: [description] (username, YYYY-MM-DD)",
+                        "required": true
+                    }
+                }
+            }
+        }
+    },
+    "editor": {
+        "formatOnSave": true,
+        "insertFinalNewline": true,
+        "trimTrailingWhitespace": true,
+        "tabSize": 2,
+        "insertSpaces": true
+    },
+    "ai": {
+        "codeCompletion": {
+            "enabled": true,
+            "language": {
+                "python": true,
+                "typescript": true,
+                "javascript": true
+            }
+        },
+        "codeAnalysis": {
+            "enabled": true,
+            "suggestions": true,
+            "security": true
+        }
+    },
+    "git": {
+        "commitMessageFormat": "conventional",
+        "branchNaming": {
+            "pattern": "^(feature|bugfix|hotfix|release)/[a-z0-9-]+$"
+        }
+    },
+    "project": {
+        "backend": {
+            "root": "backend",
+            "test": {
+                "framework": "pytest",
+                "directory": "tests"
+            },
+            "exclude": [
+                "**/__pycache__",
+                "**/.pytest_cache",
+                "**/*.pyc",
+                "**/*.pyo",
+                "**/*.pyd"
+            ]
+        },
+        "frontend": {
+            "root": "frontend",
+            "test": {
+                "framework": "jest",
+                "directory": "__tests__"
+            },
+            "exclude": [
+                "**/node_modules",
+                "**/dist",
+                "**/build"
+            ]
+        }
+    }
+} 
