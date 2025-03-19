@@ -1,43 +1,50 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from flask_sqlalchemy import SQLAlchemy
+from typing import AsyncGenerator
+
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.orm import DeclarativeBase
+
 from config.settings import settings
 
-# 创建数据库 URL
-DATABASE_URL = settings.database_url
+# 创建异步引擎
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=settings.IS_DEVELOPMENT,
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=10,
+)
 
-# 创建数据库引擎
-engine = create_engine(DATABASE_URL)
+# 创建异步会话工厂
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
 
-# 创建会话工厂
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+class Base(DeclarativeBase):
+    """声明性基类"""
+    pass
 
-# 创建基类
-Base = declarative_base()
-
-# 创建 Flask-SQLAlchemy 实例
-db = SQLAlchemy()
-
-def get_db():
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """获取数据库会话"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
 
-def init_db(app):
+# 初始化数据库
+async def init_db() -> None:
     """初始化数据库"""
-    from models.user import User  # noqa
-    
-    # 配置 Flask-SQLAlchemy
-    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    
-    # 初始化 Flask-SQLAlchemy
-    db.init_app(app)
-    
-    # 创建所有表
-    with app.app_context():
-        db.create_all() 
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all) 

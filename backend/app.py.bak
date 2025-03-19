@@ -1,0 +1,35 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from config.settings import settings
+from api.v1.api import api_router
+
+def create_app() -> FastAPI:
+    """创建 FastAPI 应用实例"""
+    app = FastAPI(
+        title="AI Demo",
+        version="1.0.0",
+        docs_url="/api/docs",
+        redoc_url="/api/redoc",
+        openapi_url="/api/openapi.json",
+        debug=settings.DEBUG,
+    )
+
+    # 配置 CORS
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=settings.CORS_CREDENTIALS,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # 注册路由
+    app.include_router(api_router, prefix=settings.API_PREFIX)
+
+    @app.get("/api/health")
+    async def health_check():
+        """健康检查接口"""
+        return {"status": "ok"}
+
+    return app 

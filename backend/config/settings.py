@@ -1,108 +1,81 @@
-from typing import Optional, Dict, Any
-from pydantic_settings import BaseSettings
-from functools import lru_cache
 import os
-import yaml
+from pathlib import Path
+from functools import lru_cache
+from typing import List
+
+from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class DatabaseSettings(BaseModel):
+    """数据库配置"""
+    host: str = Field(default="localhost")
+    port: int = Field(default=5432)
+    user: str = Field(default="postgres")
+    password: str = Field(default="postgres")
+    db: str = Field(default="ai_demo")
 
 class Settings(BaseSettings):
-    # Base project configuration
-    PROJECT_NAME: str = "AI Demo"
-    VERSION: str = "1.0.0"
-    API_V1_PREFIX: str = "/api/v1"
-    DEBUG: bool = True
-
-    # Database configuration
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
-    POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: str = "5432"
-    POSTGRES_DB: str = "ai_demo"
-    DATABASE_URL: Optional[str] = None
-
-    # JWT configuration
-    SECRET_KEY: str = "your-secret-key-here"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-
-    # CORS configuration
-    BACKEND_CORS_ORIGINS: list = ["http://localhost:3000"]
-
-    # Default superuser
-    FIRST_SUPERUSER: str = "admin"
-    FIRST_SUPERUSER_PASSWORD: str = "admin123"
-    FIRST_SUPERUSER_EMAIL: str = "admin@example.com"
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        
-        # If DATABASE_URL is not set, build it from components
-        if not self.DATABASE_URL:
-            self.DATABASE_URL = (
-                f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-                f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-            )
-
-class ConfigManager:
-    def __init__(self):
-        self._config: Dict[str, Any] = {}
-        self._load_config()
-
-    def _load_config(self):
-        """Load configuration files"""
-        # Get config path from environment variable, or use default path
-        config_path = os.getenv('CONFIG_PATH', 'config/default.yaml')
-        
-        # If environment is specified, load corresponding config file
-        env = os.getenv('ENV', 'default')
-        env_config_path = f'config/{env}.yaml'
-
-        # Load default configuration
-        with open(config_path, 'r', encoding='utf-8') as f:
-            self._config = yaml.safe_load(f)
-
-        # If environment-specific config exists, override default settings
-        if os.path.exists(env_config_path) and env != 'default':
-            with open(env_config_path, 'r', encoding='utf-8') as f:
-                env_config = yaml.safe_load(f)
-                self._deep_update(self._config, env_config)
-
-    def _deep_update(self, base_dict: dict, update_dict: dict):
-        """Recursively update dictionary"""
-        for key, value in update_dict.items():
-            if isinstance(value, dict) and key in base_dict and isinstance(base_dict[key], dict):
-                self._deep_update(base_dict[key], value)
-            else:
-                base_dict[key] = value
+    """应用配置"""
+    # 环境
+    ENV: str = Field(default="development")
+    DEBUG: bool = Field(default=True)
+    
+    # 数据库配置
+    POSTGRES_HOST: str = Field(default="localhost")
+    POSTGRES_PORT: int = Field(default=5432)
+    POSTGRES_USER: str = Field(default="postgres")
+    POSTGRES_PASSWORD: str = Field(default="postgres")
+    POSTGRES_DB: str = Field(default="ai_demo")
+    
+    # Flask 配置
+    SECRET_KEY: str = Field(default="your-secret-key")
+    SESSION_COOKIE_SECURE: bool = Field(default=True)
+    SESSION_COOKIE_HTTPONLY: bool = Field(default=True)
+    PERMANENT_SESSION_LIFETIME: int = Field(default=3600)  # 1小时
+    
+    # JWT 配置
+    JWT_ALGORITHM: str = Field(default="HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7)
+    
+    # CORS 配置
+    CORS_ORIGINS: List[str] = Field(default=["http://localhost:3000"])
+    CORS_CREDENTIALS: bool = Field(default=True)
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+    )
+    
+    @property
+    def DATABASE_URL(self) -> str:
+        """获取数据库 URL"""
+        return f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     @property
-    def database_url(self) -> str:
-        """Build database URL from configuration"""
-        db = self._config['database']
-        return f"{db['type']}://{db['user']}:{db['password']}@{db['host']}:{db['port']}/{db['db_name']}"
+    def SYNC_DATABASE_URL(self) -> str:
+        """获取同步数据库 URL（用于 Flask-SQLAlchemy）"""
+        return f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
-    def get(self, key: str, default: Any = None) -> Any:
-        """Get configuration value by key"""
-        try:
-            keys = key.split('.')
-            value = self._config
-            for k in keys:
-                value = value[k]
-            return value
-        except (KeyError, TypeError):
-            return default
+    @property
+    def IS_DEVELOPMENT(self) -> bool:
+        """是否为开发环境"""
+        return self.ENV.lower() == "development"
+    
+    @property
+    def IS_PRODUCTION(self) -> bool:
+        """是否为生产环境"""
+        return self.ENV.lower() == "production"
+    
+    @property
+    def IS_TESTING(self) -> bool:
+        """是否为测试环境"""
+        return self.ENV.lower() == "testing"
 
-    def __getitem__(self, key: str) -> Any:
-        """Access configuration using dictionary style"""
-        return self.get(key)
+@lru_cache
+def get_settings() -> Settings:
+    """获取应用配置（使用缓存）"""
+    return Settings()
 
-@lru_cache()
-def get_settings() -> ConfigManager:
-    """Get configuration manager singleton"""
-    return ConfigManager()
-
-# Create global settings instance
 settings = get_settings() 

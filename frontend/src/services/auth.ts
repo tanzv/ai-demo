@@ -1,6 +1,52 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 
-const API_URL = 'http://localhost:8000/api/v1';
+// 配置 axios 实例
+const api = axios.create({
+  baseURL: '/api/v1',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
+  },
+  withCredentials: true
+});
+
+// 添加请求拦截器
+api.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    // 确保每个请求都带有正确的头部
+    if (config.headers) {
+      config.headers['Content-Type'] = 'application/json';
+      config.headers['Accept'] = 'application/json';
+      config.headers['X-Requested-With'] = 'XMLHttpRequest';
+    }
+    
+    console.log('Request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      headers: config.headers,
+      data: config.data
+    });
+    return config;
+  },
+  (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// 添加响应拦截器
+api.interceptors.response.use(
+  (response) => {
+    console.log('Response:', response.status, response.config.url);
+    console.log('Response data:', response.data);
+    return response;
+  },
+  (error) => {
+    console.error('Response error:', error.response || error);
+    return Promise.reject(error);
+  }
+);
 
 export interface LoginData {
     username: string;
@@ -29,7 +75,7 @@ export interface UserData {
 
 const authService = {
     async login(data: LoginData): Promise<AuthResponse> {
-        const response = await axios.post(`${API_URL}/auth/login`, data);
+        const response = await api.post('/auth/login', data);
         if (response.data.access_token) {
             this.setAuthToken(response.data.access_token);
         }
@@ -37,25 +83,17 @@ const authService = {
     },
 
     async register(data: RegisterData): Promise<UserData> {
-        const response = await axios.post(`${API_URL}/auth/register`, data);
+        const response = await api.post('/auth/register', data);
         return response.data;
     },
 
     async getCurrentUser(): Promise<UserData> {
-        const response = await axios.get(`${API_URL}/auth/me`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+        const response = await api.get('/auth/me');
         return response.data;
     },
 
     async refreshToken(): Promise<AuthResponse> {
-        const response = await axios.post(`${API_URL}/auth/refresh`, {}, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+        const response = await api.post('/auth/refresh');
         if (response.data.access_token) {
             this.setAuthToken(response.data.access_token);
         }
@@ -65,10 +103,10 @@ const authService = {
     setAuthToken(token: string) {
         if (token) {
             localStorage.setItem('token', token);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         } else {
             localStorage.removeItem('token');
-            delete axios.defaults.headers.common['Authorization'];
+            delete api.defaults.headers.common['Authorization'];
         }
     },
 

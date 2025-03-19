@@ -11,44 +11,102 @@
             "problemMatcher": []
         },
         {
-            "label": "start:frontend",
+            "label": "start:frontend:dev",
+            "type": "npm",
+            "script": "start:dev",
+            "path": "frontend/",
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "custom",
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "Starting the development server",
+                    "endsPattern": "Compiled successfully|Failed to compile"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "start:frontend:debug",
             "type": "npm",
             "script": "start",
             "path": "frontend/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "options": {
+                "env": {
+                    "BROWSER": "none",
+                    "PORT": "3000",
+                    "FAST_REFRESH": "true",
+                    "REACT_DEBUGGER": "node --inspect-brk --no-lazy node_modules/.bin/react-scripts start"
+                }
             },
             "presentation": {
                 "reveal": "always",
-                "panel": "new"
+                "panel": "new",
+                "group": "frontend-debug"
             },
-            "problemMatcher": []
+            "problemMatcher": {
+                "owner": "typescript",
+                "pattern": "$tsc",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "Starting the development server",
+                    "endsPattern": "Compiled successfully|Failed to compile"
+                }
+            },
+            "detail": "启动前端调试服务器"
         },
         {
-            "label": "start:backend",
+            "label": "start:backend:dev",
             "type": "shell",
             "command": "cd backend && source .venv/bin/activate && python cli.py run --host=0.0.0.0 --port=8000 --debug",
-            "group": "build",
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "custom",
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "Running on",
+                    "endsPattern": "Debugger PIN"
+                }
+            },
             "presentation": {
                 "reveal": "always",
                 "panel": "new"
+            }
+        },
+        {
+            "label": "start:backend:debug",
+            "type": "shell",
+            "command": "cd backend && source .venv/bin/activate && python -m debugpy --listen 5678 cli.py run --host=0.0.0.0 --port=8000 --debug",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "group": "backend-debug"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "detail": "启动后端调试服务器"
         },
         {
-            "type": "npm",
-            "script": "dev:frontend",
-            "group": "build",
-            "label": "npm: dev:frontend",
-            "detail": "启动前端开发服务器（调试模式）"
+            "label": "start:all:dev",
+            "dependsOn": ["start:backend:dev", "start:frontend:dev"],
+            "dependsOrder": "sequence"
         },
         {
-            "type": "npm",
-            "script": "dev:backend",
+            "label": "start:all:debug",
+            "dependsOn": ["start:backend:debug", "start:frontend:debug"],
+            "dependsOrder": "parallel",
             "group": "build",
-            "label": "npm: dev:backend",
-            "detail": "启动后端服务器（调试模式）"
+            "problemMatcher": [],
+            "detail": "启动全栈调试环境"
         }
     ]
 } 

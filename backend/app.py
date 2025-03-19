@@ -1,82 +1,116 @@
-from flask import Flask, jsonify
-from flask_cors import CORS
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from werkzeug.exceptions import HTTPException
+from flask_cors import CORS
+from asgiref.wsgi import WsgiToAsgi
+from functools import wraps
+import asyncio
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+
 from config.settings import settings
-from models.user import User
+from config.database import init_db, Base, AsyncSessionLocal
 
+# 初始化扩展
+db = SQLAlchemy()
 login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
 
-def create_app():
-    """Create Flask application"""
+# 创建异步引擎
+async_engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=settings.IS_DEVELOPMENT,
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=10
+)
+
+def async_route(f):
+    """异步路由装饰器"""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        return asyncio.run(f(*args, **kwargs))
+    return wrapper
+
+async def init_app_async():
+    """异步初始化应用"""
+    await init_db()
+
+def create_app(config_object=None):
+    """创建 Flask 应用
+    
+    Args:
+        config_object: 配置对象
+        
+    Returns:
+        Flask: Flask 应用实例
+    """
     app = Flask(__name__)
     
-    # Load configuration
-    app.config.update(
-        SECRET_KEY=settings.get('auth.secret_key'),
-        SQLALCHEMY_DATABASE_URI=settings.database_url,
-        SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        SQLALCHEMY_POOL_SIZE=settings.get('database.pool_size', 5),
-        SQLALCHEMY_POOL_RECYCLE=settings.get('database.pool_recycle', 3600),
-        JWT_SECRET_KEY=settings.get('auth.jwt_secret_key'),
-        JWT_ACCESS_TOKEN_EXPIRES=settings.get('auth.access_token_expires'),
-        JWT_REFRESH_TOKEN_EXPIRES=settings.get('auth.refresh_token_expires')
-    )
+    # 配置应用
+    app.config.from_object(config_object or settings)
     
-    # Initialize extensions
-    from config.database import init_db
-    init_db(app)
+    # 配置 SQLAlchemy（使用同步 URL）
+    app.config["SQLALCHEMY_DATABASE_URI"] = settings.SYNC_DATABASE_URL
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ECHO"] = settings.IS_DEVELOPMENT
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,
+        "pool_size": 5,
+        "max_overflow": 10,
+    }
     
-    # Initialize login manager
+    # 初始化扩展
+    db.init_app(app)
+    with app.app_context():
+        Base.metadata.bind = db.engine
+    
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
+    CORS(app, 
+         resources={r"/api/*": {"origins": settings.CORS_ORIGINS}},
+         supports_credentials=settings.CORS_CREDENTIALS)
     
+    # 用户加载器
     @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
+    @async_route
+    async def load_user(user_id):
+        from models.user import User
+        async with AsyncSessionLocal() as session:
+            return await User.get_by_id(session, int(user_id))
     
-    # Initialize CORS
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": settings.get('cors.origins', "*"),
-            "methods": settings.get('cors.allow_methods', ["GET", "POST", "PUT", "DELETE", "OPTIONS"]),
-            "allow_headers": settings.get('cors.allow_headers', ["Content-Type", "Authorization"]),
-            "supports_credentials": True
-        }
-    })
+    # 注册蓝图
+    from api.v1.api import api_router
+    app.register_blueprint(api_router, url_prefix='/api/v1')
     
-    # Register error handlers
-    @app.errorhandler(HTTPException)
-    def handle_http_error(error):
-        """Handle HTTP errors"""
-        response = {
-            "error": error.name,
-            "message": error.description,
-            "status_code": error.code
-        }
-        return jsonify(response), error.code
+    # 错误处理
+    @app.errorhandler(404)
+    async def not_found_error(error):
+        """处理 404 错误"""
+        return {"error": "Not Found", "message": "请求的资源不存在"}, 404
 
-    @app.errorhandler(Exception)
-    def handle_error(error):
-        """Handle non-HTTP errors"""
-        app.logger.error(f"An error occurred: {error}")
-        response = {
-            "error": "Internal Server Error",
-            "message": "An unexpected error occurred",
-            "status_code": 500
-        }
-        return jsonify(response), 500
-    
-    # Register blueprints
-    from api.v1.endpoints.auth import auth_bp
-    app.register_blueprint(auth_bp, url_prefix=f"{settings.get('project.api_prefix', '/api/v1')}/auth")
-    
+    @app.errorhandler(500)
+    async def internal_error(error):
+        """处理 500 错误"""
+        return {"error": "Internal Server Error", "message": "服务器内部错误"}, 500
+
+    # 健康检查
     @app.route('/health')
-    def health_check():
-        """Health check endpoint"""
-        return jsonify({
-            "status": "healthy",
-            "version": app.config.get('VERSION', '0.1.0')
-        })
+    async def health_check():
+        """健康检查接口"""
+        return {"status": "healthy", "message": "服务运行正常"}
+
+    # 关闭时执行
+    @app.teardown_appcontext
+    async def shutdown(exception=None):
+        """应用关闭时执行的操作"""
+        # 在这里添加清理代码
+        app.logger.info("应用正在关闭")
     
-    return app 
+    # 将 WSGI 应用转换为 ASGI 应用
+    asgi_app = WsgiToAsgi(app)
+    
+    # 初始化数据库
+    asyncio.run(init_app_async())
+    app.logger.info("数据库连接池已初始化")
+    
+    return asgi_app 

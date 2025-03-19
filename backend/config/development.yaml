@@ -3,11 +3,15 @@ server:
   debug: true
 
 database:
-  host: localhost
-  port: 5432
-  name: ai_demo_dev
-  user: postgres
-  password: postgres
+  type: "postgresql"
+  host: "localhost"
+  port: "5432"
+  db_name: "ai_demo_dev"
+  user: "postgres"
+  password: "postgres"
+  track_modifications: false
+  pool_size: 5
+  pool_recycle: 3600
 
 logging:
   level: DEBUG

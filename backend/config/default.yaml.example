@@ -22,6 +22,18 @@ app:
 
 # CORS Configuration
 cors:
-  origins: ["http://localhost:3000"]  # Allowed frontend domains
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-  allow_credentials: true 
+  origins:  # 允许的前端域名
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000"
+    - "http://localhost:5173"  # Vite 默认端口
+    - "http://127.0.0.1:5173"
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]  # 允许的 HTTP 方法
+  allow_headers:  # 允许的请求头
+    - "Content-Type"
+    - "Authorization"
+    - "X-Requested-With"
+    - "Accept"
+    - "Origin"
+  allow_credentials: true  # 允许携带凭证（cookies, authorization headers）
+  max_age: 3600  # 预检请求缓存时间（秒）
+  referrer_policy: "strict-origin-when-cross-origin"  # 引荐来源网址政策

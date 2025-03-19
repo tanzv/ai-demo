@@ -25,8 +25,7 @@
                 "--port=8000",
                 "--debug"
             ],
-            "cwd": "${workspaceFolder}/backend",
-            "preLaunchTask": "activate-venv"
+            "cwd": "${workspaceFolder}/backend"
         },
         {
             "name": "Backend: Current File",
@@ -66,15 +65,39 @@
             "preLaunchTask": "activate-venv"
         },
         {
-            "name": "Frontend: Start",
+            "name": "Frontend: React Dev",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}/frontend",
+            "sourceMaps": true,
             "sourceMapPathOverrides": {
                 "webpack:///src/*": "${webRoot}/src/*"
             },
-            "preLaunchTask": "npm: start:frontend"
+            "preLaunchTask": "start:frontend:dev"
+        },
+        {
+            "name": "Frontend: React Debug",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/frontend",
+            "preLaunchTask": "start:frontend:debug",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///src/*": "${webRoot}/src/*"
+            },
+            "userDataDir": "${workspaceFolder}/.vscode/chrome-debug",
+            "runtimeArgs": [
+                "--disable-web-security",
+                "--user-data-dir=${workspaceFolder}/.vscode/chrome-debug",
+                "--remote-debugging-port=9222"
+            ],
+            "env": {
+                "BROWSER": "none",
+                "PORT": "3000",
+                "FAST_REFRESH": "true"
+            }
         },
         {
             "name": "Frontend: Attach",
@@ -83,6 +106,7 @@
             "port": 9222,
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}/frontend",
+            "sourceMaps": true,
             "sourceMapPathOverrides": {
                 "webpack:///src/*": "${webRoot}/src/*"
             }
@@ -90,8 +114,26 @@
     ],
     "compounds": [
         {
-            "name": "Full Stack: Frontend + Backend",
-            "configurations": ["Backend: Flask App", "Frontend: Start"]
+            "name": "Full Stack: Development",
+            "configurations": ["Backend: Flask App", "Frontend: React Dev"],
+            "preLaunchTask": "start:all:dev",
+            "presentation": {
+                "hidden": false,
+                "group": "fullstack",
+                "order": 1
+            },
+            "stopAll": true
+        },
+        {
+            "name": "Full Stack: Debug",
+            "configurations": ["Backend: Flask App", "Frontend: React Debug"],
+            "preLaunchTask": "start:all:debug",
+            "presentation": {
+                "hidden": false,
+                "group": "fullstack",
+                "order": 2
+            },
+            "stopAll": true
         }
     ]
 }
