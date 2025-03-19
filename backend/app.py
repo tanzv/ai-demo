@@ -2,7 +2,6 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_cors import CORS
-from asgiref.wsgi import WsgiToAsgi
 from functools import wraps
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -70,7 +69,7 @@ def create_app(config_object=None):
          resources={r"/api/*": {"origins": settings.CORS_ORIGINS}},
          supports_credentials=settings.CORS_CREDENTIALS)
     
-    # 用户加载器
+
     @login_manager.user_loader
     @async_route
     async def load_user(user_id):
@@ -106,11 +105,8 @@ def create_app(config_object=None):
         # 在这里添加清理代码
         app.logger.info("应用正在关闭")
     
-    # 将 WSGI 应用转换为 ASGI 应用
-    asgi_app = WsgiToAsgi(app)
-    
     # 初始化数据库
     asyncio.run(init_app_async())
     app.logger.info("数据库连接池已初始化")
     
-    return asgi_app 
+    return app 

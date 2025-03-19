@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = Field(default="ai_demo")
     
     # Flask 配置
-    SECRET_KEY: str = Field(default="your-secret-key")
+    SECRET_KEY: str = Field(default="ai-demo-secret-key-2024-01-01")
     SESSION_COOKIE_SECURE: bool = Field(default=True)
     SESSION_COOKIE_HTTPONLY: bool = Field(default=True)
     PERMANENT_SESSION_LIFETIME: int = Field(default=3600)  # 1小时

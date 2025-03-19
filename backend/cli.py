@@ -2,9 +2,8 @@ import asyncio
 import os
 import sys
 import click
-from hypercorn.config import Config
-from hypercorn.asyncio import serve
-from typing import Optional
+from flask import Flask
+from werkzeug.serving import run_simple
 
 from config.database import init_db
 from config.settings import settings
@@ -56,43 +55,39 @@ def cli():
     help="端口号",
 )
 @click.option(
-    "--workers",
-    default=1,
-    type=int,
-    help="工作进程数",
-)
-@click.option(
-    "--reload",
-    is_flag=True,
-    default=False,
-    help="是否启用热重载",
-)
-@click.option(
     "--debug",
     is_flag=True,
-    default=False,
+    default=True,
     help="是否启用调试模式",
 )
-def run(env: str, host: str, port: int, workers: int, reload: bool, debug: bool) -> None:
+def run(env: str, host: str, port: int, debug: bool) -> None:
     """运行应用服务器"""
     setup_environment(env)
     
     # 创建应用实例
     app = create_app()
     
-    # 配置 Hypercorn
-    config = Config()
-    config.bind = [f"{host}:{port}"]
-    config.workers = workers
-    config.use_reloader = reload
-    config.accesslog = "-"  # 输出到标准输出
-    config.errorlog = "-"   # 输出到标准错误
-    config.loglevel = "debug" if debug or env != "production" else "info"
-    
-    # 启动异步服务器
-    asyncio.run(serve(app, config))
+    if debug:
+        # 使用 Werkzeug 的开发服务器，支持热重载
+        run_simple(
+            host,
+            port,
+            app,
+            use_reloader=True,
+            use_debugger=True,
+            threaded=True,
+            processes=1
+        )
+    else:
+        # 生产环境使用 Flask 的开发服务器
+        app.run(
+            host=host,
+            port=port,
+            debug=False,
+            use_reloader=False
+        )
 
-@cli.command()
+@cli.command(name="init")
 @click.option(
     "--env",
     type=click.Choice(["development", "production", "testing"]),
@@ -100,14 +95,18 @@ def run(env: str, host: str, port: int, workers: int, reload: bool, debug: bool)
     help="运行环境",
 )
 @run_async_command
-async def init(env: str) -> None:
+async def init_db_command(env: str) -> None:
     """初始化数据库"""
     setup_environment(env)
     
-    # 运行异步初始化函数
-    from scripts.init_db import init_app
-    await init_app()
-    click.echo("数据库初始化完成")
+    try:
+        # 导入并运行初始化脚本
+        from scripts.init_db import init_db
+        await init_db()
+        click.echo("数据库初始化成功")
+    except Exception as e:
+        click.echo(f"数据库初始化失败：{str(e)}", err=True)
+        raise click.Abort()
 
 @cli.command()
 @run_async_command

@@ -19,21 +19,42 @@ def create_access_token(user_id: int, expires_delta: Optional[timedelta] = None)
     Returns:
         str: JWT 令牌
     """
-    if expires_delta is None:
-        expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    try:
+        current_app.logger.debug(f"开始创建访问令牌，用户 ID：{user_id}")
         
-    expire = datetime.utcnow() + expires_delta
-    to_encode = {
-        "sub": str(user_id),
-        "exp": expire,
-        "type": "access"
-    }
-    
-    return jwt.encode(
-        to_encode,
-        settings.SECRET_KEY,
-        algorithm=settings.JWT_ALGORITHM
-    )
+        if not user_id:
+            current_app.logger.error("用户 ID 为空")
+            raise ValueError("用户 ID 不能为空")
+            
+        if not settings.SECRET_KEY:
+            current_app.logger.error("SECRET_KEY 未设置")
+            raise ValueError("SECRET_KEY 未设置")
+            
+        if expires_delta is None:
+            expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+            current_app.logger.debug(f"使用默认过期时间：{expires_delta}")
+            
+        expire = datetime.utcnow() + expires_delta
+        to_encode = {
+            "sub": str(user_id),
+            "exp": expire,
+            "type": "access"
+        }
+        
+        current_app.logger.debug(f"准备编码数据：{to_encode}")
+        
+        token = jwt.encode(
+            to_encode,
+            settings.SECRET_KEY,
+            algorithm=settings.JWT_ALGORITHM
+        )
+        
+        current_app.logger.debug("访问令牌创建成功")
+        return token
+        
+    except Exception as e:
+        current_app.logger.error(f"创建访问令牌失败：{str(e)}")
+        raise
 
 def create_refresh_token(user_id: int, expires_delta: Optional[timedelta] = None) -> str:
     """创建刷新令牌

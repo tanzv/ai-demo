@@ -26,11 +26,11 @@ class User(UserMixin, Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True)
     email: Mapped[str] = mapped_column(String(100), unique=True, index=True)
-    hashed_password: Mapped[str] = mapped_column(String(100))
+    hashed_password: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, onupdate=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def set_password(self, password: str) -> None:
         """设置用户密码
@@ -38,7 +38,7 @@ class User(UserMixin, Base):
         Args:
             password: 明文密码
         """
-        self.hashed_password = generate_password_hash(password)
+        self.hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
     def verify_password(self, password: str) -> bool:
         """验证密码
@@ -107,4 +107,4 @@ class User(UserMixin, Base):
             Optional[User]: 用户对象，如果不存在则返回 None
         """
         result = await db.execute(select(cls).filter(cls.id == user_id))
-        return result.scalar_one_or_none() 
+        return result.scalar_one_or_none()

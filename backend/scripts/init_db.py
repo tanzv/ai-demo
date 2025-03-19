@@ -1,88 +1,62 @@
 import asyncio
-import asyncpg
-from sqlalchemy.ext.asyncio import AsyncSession
-from passlib.context import CryptContext
-
-from config.database import engine, AsyncSessionLocal, Base
+from sqlalchemy import text
+from config.database import engine, Base
 from config.settings import settings
+
+# 导入所有模型以确保它们被注册到 Base.metadata
 from models.user import User
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-async def create_database() -> None:
-    """创建数据库（如果不存在）"""
+async def init_db():
+    """初始化数据库"""
     try:
-        conn = await asyncpg.connect(
-            host=settings.POSTGRES_HOST,
-            port=settings.POSTGRES_PORT,
-            user=settings.POSTGRES_USER,
-            password=settings.POSTGRES_PASSWORD,
-            database="postgres",
-        )
+        # 删除所有表
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            print("数据库表删除成功")
         
-        # 检查数据库是否存在
-        result = await conn.fetchrow(
-            "SELECT 1 FROM pg_database WHERE datname = $1",
-            settings.POSTGRES_DB,
-        )
-        
-        if not result:
-            # 创建数据库
-            await conn.execute(f"CREATE DATABASE {settings.POSTGRES_DB}")
-            print(f"数据库 {settings.POSTGRES_DB} 创建成功")
-        
-        await conn.close()
-    except Exception as e:
-        print(f"创建数据库时出错: {e}")
-        raise
-
-async def create_tables() -> None:
-    """创建数据库表"""
-    try:
+        # 创建所有表
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        print("数据库表创建成功")
-    except Exception as e:
-        print(f"创建数据库表时出错: {e}")
-        raise
-
-async def create_admin_user(session: AsyncSession) -> None:
-    """创建管理员用户（如果不存在）"""
-    try:
-        # 检查管理员用户是否存在
-        admin = await session.get(User, 1)
+            print("数据库表创建成功")
         
-        if not admin:
-            # 创建管理员用户
-            admin = User(
-                id=1,
-                username="admin",
-                email="admin@example.com",
-                hashed_password=pwd_context.hash("admin123"),
-                is_active=True,
-                is_superuser=True,
-            )
-            session.add(admin)
-            await session.commit()
-            print("管理员用户创建成功")
-        else:
-            print("管理员用户已存在")
+        # 创建默认管理员用户
+        from config.database import AsyncSessionLocal
+        
+        async with AsyncSessionLocal() as session:
+            # 检查是否已存在管理员用户
+            admin = await User.get_by_username(session, "admin")
+            if not admin:
+                admin = User(
+                    username="admin",
+                    email="admin@example.com",
+                    is_active=True,
+                    is_superuser=True
+                )
+                admin.set_password("admin123")
+                print(f"新管理员用户密码哈希值: {admin.hashed_password}")
+                session.add(admin)
+                await session.commit()
+                print("管理员用户创建成功")
+            else:
+                print(f"现有管理员用户密码哈希值: {admin.hashed_password}")
+                # 更新现有管理员用户的密码
+                admin.set_password("admin123")
+                print(f"更新后的密码哈希值: {admin.hashed_password}")
+                await session.commit()
+                print("管理员用户密码更新成功")
+                
     except Exception as e:
-        print(f"创建管理员用户时出错: {e}")
-        await session.rollback()
+        print(f"数据库初始化失败：{str(e)}")
         raise
 
-async def init_app() -> None:
-    """初始化应用"""
-    # 创建数据库（如果不存在）
-    await create_database()
-    
-    # 创建数据库表
-    await create_tables()
-    
-    # 创建管理员用户
-    async with AsyncSessionLocal() as session:
-        await create_admin_user(session)
+async def main():
+    """主函数"""
+    try:
+        await init_db()
+        print("数据库初始化成功")
+    except Exception as e:
+        print(f"数据库初始化失败：{str(e)}")
+        raise
 
 if __name__ == "__main__":
-    asyncio.run(init_app()) 
+    asyncio.run(main()) 
